@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR file using Maven
-FROM maven:3.8-openjdk-21 as builder
+FROM maven:3.8.6-openjdk-21 as builder
 
 WORKDIR /app
 
