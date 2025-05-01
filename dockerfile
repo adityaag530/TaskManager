@@ -17,13 +17,12 @@ COPY data ./data
 
 # Copy Maven wrapper files
 COPY mvnw .
-COPY .mvn ./.mvn 2>/dev/null || true
 
 # Make mvnw executable
 RUN chmod +x mvnw
 
 # Build the application
-RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
