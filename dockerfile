@@ -1,5 +1,5 @@
-# Stage 1: Build the JAR file using Maven
-FROM maven:3.8.6-openjdk-21 as builder
+# Stage 1: Build the JAR file using Maven with OpenJDK 17
+FROM maven:3.8.6-openjdk-17 as builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 # Build the application and package it into a JAR
 RUN ./mvnw clean package -DskipTests
 
-# Stage 2: Run the application using a Java runtime
+# Stage 2: Run the application using OpenJDK 21
 FROM eclipse-temurin:21-jdk
 
 WORKDIR /app
