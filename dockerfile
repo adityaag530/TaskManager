@@ -1,34 +1,27 @@
-# Use official Java 21 base image
-FROM eclipse-temurin:21-jdk AS builder
+# Stage 1: Build the JAR file using Maven
+FROM maven:3.8-openjdk-21 as builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the Maven Wrapper and project files
-COPY mvnw .
+# Copy the Maven wrapper and source code
 COPY .mvn .mvn
+COPY mvnw .
 COPY pom.xml .
-
-# Copy the source code
 COPY src ./src
 
-# Make the mvnw file executable
-RUN chmod +x mvnw
-
-# Build the project using Maven Wrapper
+# Build the application and package it into a JAR
 RUN ./mvnw clean package -DskipTests
 
-# Use the official Java 21 image to run the app
+# Stage 2: Run the application using a Java runtime
 FROM eclipse-temurin:21-jdk
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the fat JAR from the builder stage
+# Copy the built JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Expose the port Render expects (must match PORT env)
+# Expose the port the app runs on
 EXPOSE 8888
 
-# Start the application
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
