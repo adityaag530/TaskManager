@@ -1,27 +1,44 @@
-# Stage 1: Build the JAR file using Maven with OpenJDK 17
-FROM maven:3.8.6-openjdk-17 as builder
+# Multi-stage build for Spring Boot application
 
+# Build stage
+FROM maven:3.9-eclipse-temurin-21-alpine AS build
+
+# Set working directory
 WORKDIR /app
 
-# Copy the Maven wrapper and source code
-COPY .mvn .mvn
-COPY mvnw .
+# Copy pom.xml first to leverage Docker cache
 COPY pom.xml .
+
+# Copy the source code
 COPY src ./src
 
-# Build the application and package it into a JAR
-RUN ./mvnw clean package -DskipTests
+# Copy the data directory if needed
+COPY data ./data
 
-# Stage 2: Run the application using OpenJDK 21
-FROM eclipse-temurin:21-jdk
+# Copy Maven wrapper files
+COPY mvnw .
+COPY .mvn ./.mvn 2>/dev/null || true
 
+# Make mvnw executable
+RUN chmod +x mvnw
+
+# Build the application
+RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -DskipTests
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+# Set working directory
 WORKDIR /app
 
-# Copy the built JAR file from the builder stage
-COPY --from=builder /app/target/*.jar app.jar
+# Copy the jar file from the build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Copy data directory if needed for runtime
+COPY --from=build /app/data ./data
 
 # Expose the port the app runs on
 EXPOSE 8888
 
-# Run the application
+# Command to run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
