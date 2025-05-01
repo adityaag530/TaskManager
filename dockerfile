@@ -4,12 +4,19 @@ FROM eclipse-temurin:21-jdk AS builder
 # Set the working directory
 WORKDIR /app
 
-# Copy the pom.xml and source code
+# Copy the Maven Wrapper and project files
+COPY mvnw .
+COPY .mvn .mvn
 COPY pom.xml .
+
+# Copy the source code
 COPY src ./src
 
-# Build the project
-RUN mvn clean package -DskipTests
+# Make the mvnw file executable
+RUN chmod +x mvnw
+
+# Build the project using Maven Wrapper
+RUN ./mvnw clean package -DskipTests
 
 # Use the official Java 21 image to run the app
 FROM eclipse-temurin:21-jdk
